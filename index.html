@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的小日记 - 小学生的日记本</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app-container" class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">📔</span>
+                    <h1>我的小日记</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-calendar" onclick="showCalendar()">
+                        <span>📅</span> 心情日历
+                    </button>
+                    <button class="btn btn-stats" onclick="showStats()">
+                        <span>📊</span> 我的成就
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <section id="diary-list-section" class="section">
+                <div class="section-header">
+                    <h2>🌈 我的日记</h2>
+                    <button class="btn btn-primary" onclick="showWriteDiary()">
+                        <span>✏️</span> 写日记
+                    </button>
+                </div>
+                <div id="diary-filters" class="diary-filters">
+                    <button class="filter-btn active" data-mood="all">全部</button>
+                    <button class="filter-btn" data-mood="happy">😄 开心</button>
+                    <button class="filter-btn" data-mood="sad">😢 难过</button>
+                    <button class="filter-btn" data-mood="fun">🤪 有趣</button>
+                    <button class="filter-btn" data-mood="daily">📝 日常</button>
+                </div>
+                <div id="diary-list" class="diary-list">
+                </div>
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <div class="empty-icon">📒</div>
+                    <p>还没有日记哦～</p>
+                    <p class="empty-hint">点击"写日记"开始记录吧！</p>
+                </div>
+            </section>
+
+            <section id="write-section" class="section" style="display: none;">
+                <div class="write-container">
+                    <div class="write-header">
+                        <button class="btn btn-back" onclick="showDiaryList()">
+                            <span>←</span> 返回
+                        </button>
+                        <h2 id="write-title">✏️ 写日记</h2>
+                        <div class="write-actions">
+                            <button class="btn btn-sticker" onclick="toggleStickerPanel()">
+                                <span>🌟</span> 贴纸
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="write-form">
+                        <div class="form-row">
+                            <input type="text" id="diary-title" placeholder="给日记起个标题吧～" maxlength="50">
+                        </div>
+                        
+                        <div class="form-row mood-selector">
+                            <span class="mood-label">今天心情：</span>
+                            <div class="mood-options">
+                                <button class="mood-btn" data-mood="happy" onclick="selectMood('happy')">
+                                    <span>😄</span> 开心
+                                </button>
+                                <button class="mood-btn" data-mood="sad" onclick="selectMood('sad')">
+                                    <span>😢</span> 难过
+                                </button>
+                                <button class="mood-btn" data-mood="fun" onclick="selectMood('fun')">
+                                    <span>🤪</span> 有趣
+                                </button>
+                                <button class="mood-btn" data-mood="daily" onclick="selectMood('daily')">
+                                    <span>📝</span> 日常
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="sticker-panel" class="sticker-panel" style="display: none;">
+                            <div class="sticker-grid" id="sticker-grid"></div>
+                        </div>
+
+                        <div class="form-row">
+                            <textarea id="diary-content" placeholder="今天发生了什么有趣的事情呢？写下来吧～" rows="10"></textarea>
+                        </div>
+
+                        <div class="form-row photo-upload">
+                            <label class="upload-btn">
+                                <span>📷</span> 添加照片
+                                <input type="file" id="photo-input" accept="image/*" multiple style="display: none;">
+                            </label>
+                            <div id="photo-preview" class="photo-preview"></div>
+                        </div>
+
+                        <div class="form-row privacy-row">
+                            <label class="privacy-toggle">
+                                <input type="checkbox" id="diary-private">
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-label">🔒 设为私密日记</span>
+                            </label>
+                        </div>
+
+                        <div class="form-row">
+                            <button class="btn btn-save" onclick="saveDiary()">
+                                <span>💾</span> 保存日记
+                            </button>
+                            <button class="btn btn-auto-save" id="auto-save-status">
+                                <span>✓</span> 已自动保存
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-section" class="section" style="display: none;">
+                <div class="view-container">
+                    <div class="view-header">
+                        <button class="btn btn-back" onclick="showDiaryList()">
+                            <span>←</span> 返回
+                        </button>
+                        <div class="view-actions">
+                            <button class="btn btn-edit" onclick="editCurrentDiary()">
+                                <span>✏️</span> 编辑
+                            </button>
+                            <button class="btn btn-delete" onclick="deleteCurrentDiary()">
+                                <span>🗑️</span> 删除
+                            </button>
+                        </div>
+                    </div>
+                    <div id="view-content" class="view-content"></div>
+                </div>
+            </section>
+
+            <section id="calendar-section" class="section" style="display: none;">
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button class="btn btn-back" onclick="showDiaryList()">
+                            <span>←</span> 返回
+                        </button>
+                        <h2>📅 心情日历</h2>
+                        <div class="calendar-nav">
+                            <button class="btn btn-nav" onclick="changeMonth(-1)">◀</button>
+                            <span id="current-month"></span>
+                            <button class="btn btn-nav" onclick="changeMonth(1)">▶</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid">
+                        <div class="calendar-weekdays">
+                            <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+                        </div>
+                        <div id="calendar-days" class="calendar-days"></div>
+                    </div>
+                    <div class="mood-legend">
+                        <span class="legend-item"><span>😄</span> 开心</span>
+                        <span class="legend-item"><span>😢</span> 难过</span>
+                        <span class="legend-item"><span>🤪</span> 有趣</span>
+                        <span class="legend-item"><span>📝</span> 日常</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="stats-section" class="section" style="display: none;">
+                <div class="stats-container">
+                    <div class="stats-header">
+                        <button class="btn btn-back" onclick="showDiaryList()">
+                            <span>←</span> 返回
+                        </button>
+                        <h2>📊 我的成就</h2>
+                    </div>
+                    <div class="stats-cards">
+                        <div class="stat-card">
+                            <div class="stat-icon">📔</div>
+                            <div class="stat-value" id="stat-total">0</div>
+                            <div class="stat-label">日记总数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🔥</div>
+                            <div class="stat-value" id="stat-streak">0</div>
+                            <div class="stat-label">连续天数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">😊</div>
+                            <div class="stat-value" id="stat-happy">0</div>
+                            <div class="stat-label">开心日记</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⭐</div>
+                            <div class="stat-value" id="stat-stickers">0</div>
+                            <div class="stat-label">使用贴纸</div>
+                        </div>
+                    </div>
+                    <div class="mood-distribution">
+                        <h3>心情分布</h3>
+                        <div id="mood-bars" class="mood-bars"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="app-footer">
+            <p>🌟 用心记录每一天 🌟</p>
+            <button class="btn btn-link" onclick="showPasswordModal('change')" style="margin-top: 8px;">
+                🔑 修改密码
+            </button>
+        </footer>
+
+        <div id="password-modal" class="modal">
+            <div class="modal-content password-modal-content">
+                <div class="password-icon">🔐</div>
+                <h2 id="password-modal-title">设置密码</h2>
+                <p id="password-hint">设置一个密码，保护你的小日记～</p>
+                <input type="password" id="password-input" placeholder="请输入密码" maxlength="20">
+                <input type="password" id="password-confirm" placeholder="再输入一次确认" maxlength="20" style="display: none;">
+                <p id="password-error" class="password-error"></p>
+                <button class="btn btn-save" onclick="handlePasswordSubmit()" id="password-submit-btn">
+                    <span>✓</span> 确定
+                </button>
+                <button class="btn btn-link" onclick="handlePasswordSkip()" id="password-skip-btn" style="display: none;">
+                    暂时不设密码
+                </button>
+            </div>
+        </div>
+
+        <div id="lock-screen" class="lock-screen" style="display: none;">
+            <div class="lock-content">
+                <div class="lock-icon">🔒</div>
+                <h2>我的小日记</h2>
+                <p>请输入密码解锁</p>
+                <input type="password" id="unlock-password" placeholder="输入密码" maxlength="20">
+                <p id="unlock-error" class="password-error"></p>
+                <button class="btn btn-save" onclick="handleUnlock()">
+                    <span>🔑</span> 解锁
+                </button>
+                <button class="btn btn-link" onclick="handleLockScreenSkip()">
+                    重设密码
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-icon">⚠️</div>
+            <p id="modal-message">确定要删除这篇日记吗？</p>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal()">取消</button>
+                <button class="btn btn-confirm" id="modal-confirm-btn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
