@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的日记本</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #fff5f5 0%, #f0f8ff 50%, #f5fff5 100%);
+            font-family: 'Microsoft YaHei', sans-serif;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #9b59b6;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        
+        h1::before {
+            content: '📔 ';
+        }
+        
+        h1::after {
+            content: ' 📔';
+        }
+        
+        .date-display {
+            color: #888;
+            font-size: 16px;
+        }
+        
+        .write-area {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(155, 89, 182, 0.15);
+        }
+        
+        .write-title {
+            color: #9b59b6;
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border: 2px solid #f0f0f0;
+            border-radius: 15px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            border-color: #9b59b6;
+        }
+        
+        .mood-select {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .mood-btn {
+            font-size: 28px;
+            background: #f8f8f8;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .mood-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .mood-btn.selected {
+            background: #ffe5f5;
+            border-color: #9b59b6;
+        }
+        
+        .btn-save {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #9b59b6, #e74c3c);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(155, 89, 182, 0.3);
+        }
+        
+        .diary-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .diary-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(155, 89, 182, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .diary-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .diary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+        
+        .diary-date {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .diary-mood {
+            font-size: 24px;
+        }
+        
+        .diary-content {
+            color: #333;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+        
+        .diary-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 15px;
+            gap: 10px;
+        }
+        
+        .btn-edit, .btn-delete {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        
+        .btn-edit {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-edit:hover, .btn-delete:hover {
+            transform: scale(1.05);
+        }
+        
+        .empty {
+            text-align: center;
+            color: #ccc;
+            padding: 50px;
+            font-size: 18px;
+        }
+        
+        .empty::before {
+            content: '✍️';
+            font-size: 50px;
+            display: block;
+            margin-bottom: 15px;
+        }
+        
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 15px;
+            background: white;
+            border: 2px solid #9b59b6;
+            border-radius: 20px;
+            color: #9b59b6;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn.active {
+            background: #9b59b6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>我的日记本</h1>
+            <div class="date-display" id="today"></div>
+        </header>
+        
+        <div class="write-area">
+            <div class="write-title">✨ 写日记 ✨</div>
+            <textarea id="diaryContent" placeholder="今天发生了什么有趣的事呢？"></textarea>
+            <div class="mood-select">
+                <button class="mood-btn selected" data-mood="😊">😊</button>
+                <button class="mood-btn" data-mood="😢">😢</button>
+                <button class="mood-btn" data-mood="😡">😡</button>
+                <button class="mood-btn" data-mood="😴">😴</button>
+                <button class="mood-btn" data-mood="🤔">🤔</button>
+                <button class="mood-btn" data-mood="🥰">🥰</button>
+                <button class="mood-btn" data-mood="😎">😎</button>
+                <button class="mood-btn" data-mood="💪">💪</button>
+            </div>
+            <button class="btn-save" onclick="saveDiary()">💾 保存日记</button>
+        </div>
+        
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterDiary('all')">全部</button>
+            <button class="filter-btn" onclick="filterDiary('happy')">开心</button>
+            <button class="filter-btn" onclick="filterDiary('sad')">难过</button>
+        </div>
+        
+        <div class="diary-list" id="diaryList">
+            <div class="empty">还没有日记哦～</div>
+        </div>
+    </div>
+
+    <script>
+        const moods = {
+            '😊': 'happy', '🥰': 'happy',
+            '😢': 'sad', '😡': 'sad',
+            '😴': 'neutral', '🤔': 'neutral',
+            '😎': 'neutral', '💪': 'happy'
+        };
+        
+        let diaries = JSON.parse(localStorage.getItem('diaries')) || [];
+        let selectedMood = '😊';
+        let currentFilter = 'all';
+        let editingIndex = -1;
+        
+        const moodBtns = document.querySelectorAll('.mood-btn');
+        moodBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                moodBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedMood = btn.dataset.mood;
+            });
+        });
+        
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${weekdays[date.getDay()]}`;
+        }
+        
+        document.getElementById('today').textContent = formatDate(new Date());
+        
+        function saveDiaries() {
+            localStorage.setItem('diaries', JSON.stringify(diaries));
+        }
+        
+        function saveDiary() {
+            const content = document.getElementById('diaryContent').value.trim();
+            
+            if (!content) {
+                alert('请输入日记内容哦～');
+                return;
+            }
+            
+            if (editingIndex >= 0) {
+                diaries[editingIndex] = {
+                    ...diaries[editingIndex],
+                    content,
+                    mood: selectedMood,
+                    date: new Date().toISOString()
+                };
+                editingIndex = -1;
+            } else {
+                diaries.unshift({
+                    content,
+                    mood: selectedMood,
+                    date: new Date().toISOString()
+                });
+            }
+            
+            saveDiaries();
+            renderDiaries();
+            
+            document.getElementById('diaryContent').value = '';
+            moodBtns.forEach(b => b.classList.remove('selected'));
+            moodBtns[0].classList.add('selected');
+            selectedMood = '😊';
+        }
+        
+        function filterDiary(type) {
+            currentFilter = type;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.includes(type === 'all' ? '全部' : type === 'happy' ? '开心' : '难过')) {
+                    btn.classList.add('active');
+                }
+            });
+            renderDiaries();
+        }
+        
+        function renderDiaries() {
+            const list = document.getElementById('diaryList');
+            
+            let filtered = diaries;
+            if (currentFilter === 'happy') {
+                filtered = diaries.filter(d => moods[d.mood] === 'happy');
+            } else if (currentFilter === 'sad') {
+                filtered = diaries.filter(d => moods[d.mood] === 'sad');
+            }
+            
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="empty">还没有日记哦～</div>';
+                return;
+            }
+            
+            list.innerHTML = filtered.map((d, i) => {
+                const realIndex = diaries.indexOf(d);
+                return `
+                    <div class="diary-card">
+                        <div class="diary-header">
+                            <span class="diary-date">${formatDate(d.date)}</span>
+                            <span class="diary-mood">${d.mood}</span>
+                        </div>
+                        <div class="diary-content">${d.content}</div>
+                        <div class="diary-actions">
+                            <button class="btn-edit" onclick="editDiary(${realIndex})">✏️ 编辑</button>
+                            <button class="btn-delete" onclick="deleteDiary(${realIndex})">🗑️ 删除</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function editDiary(index) {
+            const diary = diaries[index];
+            document.getElementById('diaryContent').value = diary.content;
+            
+            moodBtns.forEach(b => {
+                b.classList.remove('selected');
+                if (b.dataset.mood === diary.mood) {
+                    b.classList.add('selected');
+                }
+            });
+            selectedMood = diary.mood;
+            editingIndex = index;
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function deleteDiary(index) {
+            if (confirm('确定要删除这篇日记吗？')) {
+                diaries.splice(index, 1);
+                saveDiaries();
+                renderDiaries();
+            }
+        }
+        
+        renderDiaries();
+    </script>
+</body>
+</html>
